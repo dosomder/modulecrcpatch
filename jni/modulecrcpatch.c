@@ -11,7 +11,7 @@
 #include <string.h>
 
 //symbols *should* be in the first 4096 bytes, maybe it's more if there are many
-#define filebufsize 4096
+#define FILEBUFSIZE 4096
 #define isascii(c)  ((c & ~0x7F) == 0)
 //#define DEBUG
 
@@ -24,13 +24,13 @@ void debugprintf(const char* format, ...)
 {
 #ifdef DEBUG
 	va_list argptr;
-    va_start(argptr, format);
+	va_start(argptr, format);
 	vfprintf(stdout, format, argptr);
 	va_end(argptr);
 #endif
 }
 
-int memsearch(char* buf, int buflength, const char* pattern, int patternlength)
+int memsearch(const char* buf, const int buflength, const char* pattern, int patternlength)
 {
 	int i;
 	debugprintf("searching for: 0x%08x\n", *(unsigned int*)pattern);
@@ -78,29 +78,29 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	char* readbuf = malloc(filebufsize);
-	char* writebuf = malloc(filebufsize);
+	char* readbuf = malloc(FILEBUFSIZE);
+	char* writebuf = malloc(FILEBUFSIZE);
 	if(readbuf==NULL || writebuf==NULL)
 	{
 		printf("Error allocating memory\n");
 		return 1;
 	}
 
-	memset(readbuf, 0, filebufsize);
-	fread(readbuf, filebufsize, 1, readfile);
+	memset(readbuf, 0, FILEBUFSIZE);
+	fread(readbuf, FILEBUFSIZE, 1, readfile);
 	fclose(readfile);
 
-	memset(writebuf, 0, filebufsize);
-	int bread = fread(writebuf, filebufsize, 1, writefile);
+	memset(writebuf, 0, FILEBUFSIZE);
+	int bread = fread(writebuf, FILEBUFSIZE, 1, writefile);
 
 	debugprintf("first 4 read 0x%08x\n", *(unsigned int*)readbuf);
 	debugprintf("first 4 write 0x%08x\n", *(unsigned int*)writebuf);
 
 	const char mlstr[] = "module_layout\0\0\0"; //it's char [60] but we don't really care
 	const char gnustr[] = "GNU";
-	const int gnupos = memsearch(writebuf, filebufsize, gnustr, sizeof(gnustr)) - 0x168; //module name is saved in this char mname[0x168];
+	const int gnupos = memsearch(writebuf, FILEBUFSIZE, gnustr, sizeof(gnustr)) - 0x168; //module name is saved in this char mname[0x168];
 	//const since we use it as pointer for kosymbols
-	const int mlpos = memsearch(writebuf, filebufsize, mlstr, sizeof(mlstr)) - 4; //size of crc
+	const int mlpos = memsearch(writebuf, FILEBUFSIZE, mlstr, sizeof(mlstr)) - 4; //size of crc
 	if(gnupos <= 0 || mlpos <= 0)
 	{
 		printf("Error finding pos\n");
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 	for(i = 0;i < kosymbolsize; i++)
 	{
 		printf("%s: ", kosymbols[i].symbolname);
-		int inputpos = memsearch(readbuf, filebufsize, kosymbols[i].symbolname, sizeof(kosymbols[i].symbolname)) - 4; //-4 to go to start of crc
+		int inputpos = memsearch(readbuf, FILEBUFSIZE, kosymbols[i].symbolname, sizeof(kosymbols[i].symbolname)) - 4; //-4 to go to start of crc
 		if(inputpos < 0)
 		{
 			printf("not found\n");
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 	}
 
 	fseek(writefile, 0L, SEEK_SET);
-	fwrite(writebuf, filebufsize, 1, writefile);
+	fwrite(writebuf, FILEBUFSIZE, 1, writefile);
 
 _return:
 	free(readbuf);
