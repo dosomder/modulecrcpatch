@@ -37,17 +37,12 @@ int memsearch(const char* buf, const int buflength, const char* pattern, int pat
 
 	for(i = 0; i < (buflength - patternlength); i++)
 	{
-		if(i == (buflength - (patternlength + 1))) //+1 for 0x00
-		{
-			debugprintf("error: memcmp didn't find anything\n");
-			return 0;
-		}
-
-		if(memcmp(pattern, &buf[i], patternlength) != 0)
-			continue;
-
-		return i;
+		if(memcmp(pattern, &buf[i], patternlength) == 0)
+			return i;
 	}
+
+	debugprintf("error: memcmp didn't find anything\n");
+	return 0;
 }
 
 int main(int argc, char** argv)
