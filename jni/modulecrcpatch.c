@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-//symbols *should* be in the first 4096 bytes, maybe it's more if there are many
-#define FILEBUFSIZE 4096
+//symbols *should* be in the first 16384 bytes, maybe it's more if there are many
+#define FILEBUFSIZE 16384
 #define isascii(c)  ((c & ~0x7F) == 0)
 //#define DEBUG
 
@@ -82,11 +82,11 @@ int main(int argc, char** argv)
 	}
 
 	memset(readbuf, 0, FILEBUFSIZE);
-	fread(readbuf, FILEBUFSIZE, 1, readfile);
+	fread(readbuf, 1, FILEBUFSIZE, readfile);
 	fclose(readfile);
 
 	memset(writebuf, 0, FILEBUFSIZE);
-	int bread = fread(writebuf, FILEBUFSIZE, 1, writefile);
+	int bread = fread(writebuf, 1, FILEBUFSIZE, writefile);
 
 	debugprintf("first 4 read 0x%08x\n", *(unsigned int*)readbuf);
 	debugprintf("first 4 write 0x%08x\n", *(unsigned int*)writebuf);
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 	}
 
 	fseek(writefile, 0L, SEEK_SET);
-	fwrite(writebuf, FILEBUFSIZE, 1, writefile);
+	fwrite(writebuf, 1, bread, writefile);
 
 _return:
 	free(readbuf);
